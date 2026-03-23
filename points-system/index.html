@@ -1,0 +1,1254 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>家庭积分系统 - 完整权限版</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: system-ui, 'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif;
+        }
+
+        body {
+            background: #f0f7ff;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .app-container {
+            max-width: 1300px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 2rem;
+            box-shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            transition: all 0.2s;
+        }
+
+        .top-nav {
+            background: linear-gradient(135deg, #2b6e4f, #1e5a41);
+            color: white;
+            padding: 1rem 2rem;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+        }
+        .family-info h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .family-info p {
+            font-size: 0.85rem;
+            opacity: 0.9;
+            margin-top: 4px;
+        }
+        .current-date {
+            background: rgba(255,255,255,0.2);
+            padding: 0.5rem 1rem;
+            border-radius: 40px;
+            font-weight: 500;
+            backdrop-filter: blur(2px);
+            font-size: 0.9rem;
+        }
+
+        .member-bar {
+            background: #fef9e6;
+            padding: 0.8rem 2rem;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid #ffe0b5;
+        }
+        .member-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: center;
+            flex: 1;
+        }
+        .member-chip {
+            background: white;
+            border-radius: 40px;
+            padding: 6px 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            transition: all 0.2s;
+            border: 1px solid #ffe0b5;
+            position: relative;
+        }
+        .member-chip.active {
+            background: #2b6e4f;
+            color: white;
+            border-color: #2b6e4f;
+            box-shadow: 0 6px 12px -8px #2b6e4f;
+        }
+        .member-avatar {
+            font-size: 1.3rem;
+        }
+        .member-name {
+            font-weight: 500;
+        }
+        .member-badge {
+            font-size: 0.7rem;
+            background: #ffb347;
+            border-radius: 20px;
+            padding: 2px 6px;
+            margin-left: 4px;
+        }
+        .member-actions {
+            display: none;
+            position: absolute;
+            right: -30px;
+            top: 50%;
+            transform: translateY(-50%);
+            gap: 4px;
+            background: white;
+            border-radius: 20px;
+            padding: 2px 6px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .member-chip:hover .member-actions {
+            display: flex;
+        }
+        .member-action-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 0.9rem;
+            padding: 2px 4px;
+            border-radius: 50%;
+            transition: 0.2s;
+        }
+        .member-action-btn:hover {
+            background: #f0f0f0;
+            transform: scale(1.1);
+        }
+        .add-member-btn {
+            background: #ffb347;
+            border: none;
+            padding: 6px 16px;
+            border-radius: 40px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: 0.2s;
+        }
+        .add-member-btn:hover {
+            background: #ff9f1c;
+            transform: scale(0.97);
+        }
+
+        .tabs {
+            display: flex;
+            padding: 0 2rem;
+            background: #fff;
+            border-bottom: 2px solid #e9ecef;
+            gap: 0.5rem;
+        }
+        .tab-btn {
+            padding: 1rem 1.8rem;
+            font-size: 1rem;
+            font-weight: 600;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            transition: 0.2s;
+            color: #5a6874;
+            border-radius: 30px 30px 0 0;
+        }
+        .tab-btn.active {
+            color: #2b6e4f;
+            border-bottom: 3px solid #2b6e4f;
+            background: #f8fafc;
+        }
+        .tab-content {
+            display: none;
+            padding: 2rem;
+            animation: fadeIn 0.2s ease;
+        }
+        .tab-content.active {
+            display: block;
+        }
+
+        .card {
+            background: white;
+            border-radius: 1.5rem;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+            padding: 1.2rem 1.5rem;
+            margin-bottom: 1.8rem;
+            border: 1px solid #eef2f6;
+        }
+        .card-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-left: 5px solid #2b6e4f;
+            padding-left: 12px;
+        }
+        .btn-primary {
+            background: #2b6e4f;
+            color: white;
+            border: none;
+            padding: 10px 18px;
+            border-radius: 40px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .btn-primary:hover {
+            background: #1e5a41;
+            transform: translateY(-2px);
+        }
+        .btn-outline {
+            background: transparent;
+            border: 1px solid #2b6e4f;
+            color: #2b6e4f;
+            padding: 8px 16px;
+            border-radius: 40px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 4px 12px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+        .task-item, .reward-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            padding: 12px 0;
+            border-bottom: 1px solid #eee;
+            gap: 10px;
+        }
+        .task-info, .reward-info {
+            flex: 2;
+        }
+        .task-points, .reward-cost {
+            font-weight: bold;
+            color: #ff8c42;
+            min-width: 70px;
+        }
+        .checkbox-wrapper {
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+        .task-actions {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        .star-effect {
+            animation: starPop 0.4s ease-out;
+        }
+        @keyframes starPop {
+            0% { transform: scale(0.5); opacity: 0; }
+            50% { transform: scale(1.3); color: gold; text-shadow: 0 0 5px orange; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .rank-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .rank-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            background: #f9fafb;
+            padding: 10px 15px;
+            border-radius: 60px;
+        }
+        .rank-num {
+            font-weight: bold;
+            width: 40px;
+            font-size: 1.3rem;
+        }
+        .rank-avatar {
+            font-size: 2rem;
+        }
+        .rank-name {
+            flex: 1;
+            font-weight: 500;
+        }
+        .rank-points {
+            font-weight: bold;
+            color: #2b6e4f;
+        }
+        canvas {
+            max-width: 100%;
+            background: #fefaf0;
+            border-radius: 20px;
+            padding: 10px;
+        }
+        .form-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: flex-end;
+            margin-bottom: 20px;
+        }
+        .form-group input, .form-group select {
+            padding: 10px 12px;
+            border-radius: 40px;
+            border: 1px solid #ccc;
+            flex: 1;
+            min-width: 120px;
+        }
+        .log-list {
+            max-height: 200px;
+            overflow-y: auto;
+            font-size: 0.85rem;
+            background: #f8f9fa;
+            border-radius: 20px;
+            padding: 10px;
+        }
+        .permission-tip {
+            font-size: 0.8rem;
+            color: #dc3545;
+            background: #fff0f0;
+            padding: 6px 12px;
+            border-radius: 30px;
+            display: inline-block;
+        }
+        .import-section {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px dashed #ddd;
+        }
+        .file-input-label {
+            background: #6c757d;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            display: inline-block;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .modal-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 1.5rem;
+            min-width: 300px;
+            max-width: 400px;
+        }
+        .modal-content h3 {
+            margin-bottom: 1rem;
+        }
+        .modal-content input, .modal-content select {
+            width: 100%;
+            padding: 8px;
+            margin: 8px 0;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+        }
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 1rem;
+            justify-content: flex-end;
+        }
+        @media (max-width: 680px) {
+            .top-nav { flex-direction: column; align-items: start; }
+            .tabs { padding: 0 1rem; }
+            .tab-content { padding: 1rem; }
+            .member-bar { flex-direction: column; align-items: stretch; }
+            .task-item { flex-direction: column; align-items: flex-start; }
+            .member-actions {
+                position: static;
+                transform: none;
+                margin-left: 8px;
+                display: flex;
+            }
+        }
+        button:active { transform: scale(0.96); }
+        .reward-btn {
+            background: #ffe0b5;
+            border: none;
+            padding: 6px 16px;
+            border-radius: 30px;
+            font-weight: bold;
+        }
+        .reward-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+<div class="app-container">
+    <div class="top-nav">
+        <div class="family-info">
+            <h2>🏠 温馨家庭积分系统 <span style="font-size:0.9rem;">✨</span></h2>
+            <p>家长可管理成员 · 任务 · 奖励 · 密码保护</p>
+        </div>
+        <div class="current-date" id="currentDateDisplay"></div>
+    </div>
+
+    <div class="member-bar">
+        <div class="member-list" id="memberListContainer"></div>
+        <button class="add-member-btn" id="addMemberBtn">➕ 添加成员</button>
+    </div>
+
+    <div class="tabs">
+        <button class="tab-btn active" data-tab="tab1">📋 任务大厅</button>
+        <button class="tab-btn" data-tab="tab2">🏆 积分排行榜</button>
+        <button class="tab-btn" data-tab="tab3">🎁 奖励商店</button>
+    </div>
+
+    <div id="tab1" class="tab-content active">
+        <div class="card" id="addTaskCard">
+            <div class="card-title">➕ 家长添加新任务</div>
+            <div id="taskManagementArea"></div>
+        </div>
+        <div class="card">
+            <div class="card-title">⭐ 任务清单</div>
+            <div id="tasksContainer">加载中...</div>
+        </div>
+    </div>
+
+    <div id="tab2" class="tab-content">
+        <div class="card">
+            <div class="card-title">🏅 家庭成员积分排行</div>
+            <div id="rankContainer" class="rank-list"></div>
+        </div>
+        <div class="card">
+            <div class="card-title">📈 本周积分获取趋势（当前用户）</div>
+            <canvas id="trendChart" width="500" height="200" style="width:100%; height:auto; max-height:220px"></canvas>
+        </div>
+    </div>
+
+    <div id="tab3" class="tab-content">
+        <div class="card">
+            <div class="card-title">🎁 家长设置奖励</div>
+            <div id="rewardManageArea"></div>
+        </div>
+        <div class="card">
+            <div class="card-title">🛍️ 可兑换奖励</div>
+            <div id="rewardsContainer"></div>
+        </div>
+        <div class="card">
+            <div class="card-title">📜 兑换记录日志</div>
+            <div id="logContainer" class="log-list">暂无兑换记录</div>
+        </div>
+    </div>
+
+    <div style="padding: 0 2rem 2rem 2rem; display: flex; gap: 15px; flex-wrap: wrap; justify-content: flex-end; align-items: center;">
+        <div class="import-section" style="margin-right: auto;">
+            <label class="file-input-label" for="importFileInput">📂 导入数据 (JSON)</label>
+            <input type="file" id="importFileInput" accept=".json" style="display: none;">
+            <span style="font-size:0.7rem; color:#666; margin-left:8px;">支持UTF-8编码JSON文件</span>
+        </div>
+        <button id="resetAllBtn" class="btn-outline" style="border-color:#dc3545; color:#dc3545;">🗑️ 重置所有数据</button>
+        <button id="exportDataBtn" class="btn-outline">📥 导出数据 (UTF-8)</button>
+    </div>
+</div>
+
+<!-- 编辑成员的模态框 -->
+<div id="editMemberModal" class="modal">
+    <div class="modal-content">
+        <h3>编辑成员信息</h3>
+        <input type="text" id="editMemberName" placeholder="成员姓名" autocomplete="off">
+        <select id="editMemberRole">
+            <option value="child">普通成员</option>
+            <option value="parent">家长</option>
+        </select>
+        <div class="modal-buttons">
+            <button id="saveMemberBtn" class="btn-primary">保存</button>
+            <button id="cancelEditBtn" class="btn-outline">取消</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const PARENT_PASSWORD = "8888";
+
+    const STORAGE_KEYS = {
+        MEMBERS: 'family_members',
+        TASKS: 'family_tasks',
+        REWARDS: 'family_rewards',
+        TRANSACTIONS: 'point_transactions',
+        REDEMPTION_LOGS: 'redemption_logs',
+        TASK_COMPLETIONS: 'task_completions'
+    };
+
+    let members = [];
+    let tasks = [];
+    let rewards = [];
+    let transactions = [];
+    let redemptionLogs = [];
+    let taskCompletions = {};
+    let currentUserId = null;
+    let editingMemberId = null;
+
+    function persistData() {
+        localStorage.setItem(STORAGE_KEYS.MEMBERS, JSON.stringify(members));
+        localStorage.setItem(STORAGE_KEYS.TASKS, JSON.stringify(tasks));
+        localStorage.setItem(STORAGE_KEYS.REWARDS, JSON.stringify(rewards));
+        localStorage.setItem(STORAGE_KEYS.TRANSACTIONS, JSON.stringify(transactions));
+        localStorage.setItem(STORAGE_KEYS.REDEMPTION_LOGS, JSON.stringify(redemptionLogs));
+        localStorage.setItem(STORAGE_KEYS.TASK_COMPLETIONS, JSON.stringify(taskCompletions));
+    }
+
+    function isCurrentUserParent() {
+        if (!currentUserId) return false;
+        const user = members.find(m => m.id === currentUserId);
+        return user && user.role === 'parent';
+    }
+
+    function verifyParentPassword(actionName = "操作") {
+        return new Promise((resolve) => {
+            const pwd = prompt(`🔐 家长权限验证\n您正在执行「${actionName}」，请输入家长密码：`);
+            resolve(pwd === PARENT_PASSWORD);
+        });
+    }
+
+    async function switchToMember(targetUserId) {
+        const targetMember = members.find(m => m.id === targetUserId);
+        if (!targetMember) return false;
+        if (targetMember.role === 'parent') {
+            const pwd = prompt(`🔐 切换至「${targetMember.name}」需要家长密码验证：`);
+            if (pwd !== PARENT_PASSWORD) {
+                alert("密码错误，无法切换至家长身份！");
+                return false;
+            }
+        }
+        currentUserId = targetUserId;
+        refreshAllUI();
+        return true;
+    }
+
+    async function addMember() {
+        if (!isCurrentUserParent()) {
+            alert("只有家长才能添加成员！");
+            return;
+        }
+        const name = prompt('请输入成员姓名', '新成员');
+        if (!name || name.trim() === '') return;
+        const trimmedName = name.trim();
+        let role = 'child';
+        const isParent = confirm(`是否为家长角色？\n若是家长，后续切换到此账户需密码验证。\n点击"确定"设为家长，点击"取消"设为普通成员。`);
+        if (isParent) {
+            const pwd = prompt(`设置家长账户「${trimmedName}」需要验证当前家长密码：`);
+            if (pwd !== PARENT_PASSWORD) {
+                alert("密码错误，无法添加家长账户！");
+                return;
+            }
+            role = 'parent';
+        }
+        const avatars = ['😀', '😎', '👧', '👦', '🐶', '🐱', '🦊', '🐼', '👨‍🦰', '👩‍🦱'];
+        const avatar = avatars[Math.floor(Math.random() * avatars.length)];
+        const newId = 'm_' + Date.now() + '_' + Math.random().toString(36).substr(2, 8);
+        members.push({ id: newId, name: trimmedName, avatar, points: 0, role: role });
+        persistData();
+        if (!currentUserId) currentUserId = newId;
+        refreshAllUI();
+        alert(`成员 "${trimmedName}" 已添加成功！`);
+    }
+
+    async function editMember(memberId) {
+        if (!isCurrentUserParent()) {
+            alert("只有家长才能编辑成员信息！");
+            return;
+        }
+        const member = members.find(m => m.id === memberId);
+        if (!member) return;
+        
+        editingMemberId = memberId;
+        document.getElementById('editMemberName').value = member.name;
+        document.getElementById('editMemberRole').value = member.role;
+        document.getElementById('editMemberModal').style.display = 'flex';
+    }
+
+    async function saveMemberEdit() {
+        const newName = document.getElementById('editMemberName').value.trim();
+        const newRole = document.getElementById('editMemberRole').value;
+        
+        if (!newName) {
+            alert("姓名不能为空！");
+            return;
+        }
+        
+        const member = members.find(m => m.id === editingMemberId);
+        if (!member) return;
+        
+        // 如果要修改为家长角色，需要验证密码
+        if (newRole === 'parent' && member.role !== 'parent') {
+            const pwd = prompt(`将「${member.name}」设为家长需要验证当前家长密码：`);
+            if (pwd !== PARENT_PASSWORD) {
+                alert("密码错误，无法修改为家长角色！");
+                document.getElementById('editMemberModal').style.display = 'none';
+                return;
+            }
+        }
+        
+        // 如果修改的是当前用户且角色从家长变为普通，需要提醒
+        if (currentUserId === editingMemberId && member.role === 'parent' && newRole === 'child') {
+            const confirmChange = confirm(`您正在将当前登录的家长账户改为普通成员。\n切换后您将失去管理权限，确定要继续吗？`);
+            if (!confirmChange) {
+                document.getElementById('editMemberModal').style.display = 'none';
+                return;
+            }
+        }
+        
+        member.name = newName;
+        member.role = newRole;
+        persistData();
+        
+        document.getElementById('editMemberModal').style.display = 'none';
+        
+        // 如果当前用户是被编辑的成员，刷新所有界面
+        if (currentUserId === editingMemberId) {
+            refreshAllUI();
+        } else {
+            renderMemberBar();
+            renderRank();
+        }
+        
+        alert(`成员信息已更新为：${newName}`);
+    }
+
+    async function deleteMember(memberId) {
+        if (!isCurrentUserParent()) {
+            alert("只有家长才能删除成员！");
+            return;
+        }
+        
+        const member = members.find(m => m.id === memberId);
+        if (!member) return;
+        
+        // 不能删除最后一个成员
+        if (members.length === 1) {
+            alert("至少需要保留一个家庭成员！");
+            return;
+        }
+        
+        const confirmMsg = `确定删除成员「${member.name}」吗？\n删除后该成员的所有积分记录和任务完成记录也会被清除！`;
+        if (!confirm(confirmMsg)) return;
+        
+        // 删除成员相关的所有数据
+        members = members.filter(m => m.id !== memberId);
+        transactions = transactions.filter(t => t.userId !== memberId);
+        redemptionLogs = redemptionLogs.filter(l => l.userId !== memberId);
+        
+        // 删除该成员的任务完成记录
+        const newCompletions = {};
+        for (let key in taskCompletions) {
+            if (!key.startsWith(memberId + '_')) {
+                newCompletions[key] = taskCompletions[key];
+            }
+        }
+        taskCompletions = newCompletions;
+        
+        persistData();
+        
+        // 如果删除的是当前用户，切换到第一个成员
+        if (currentUserId === memberId) {
+            currentUserId = members.length ? members[0].id : null;
+        }
+        
+        refreshAllUI();
+        alert(`成员 "${member.name}" 已删除！`);
+    }
+
+    async function addTask() {
+        if (!isCurrentUserParent()) {
+            alert("只有家长（爸爸/妈妈）才能添加任务！");
+            return;
+        }
+        const name = document.getElementById('taskName').value.trim();
+        const points = parseInt(document.getElementById('taskPoints').value);
+        const freq = document.getElementById('taskFreq').value;
+        if (!name || isNaN(points) || points <= 0) { alert('请输入有效任务名称和积分'); return; }
+        tasks.push({ id: 't_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6), name: name, points: points, frequency: freq });
+        persistData();
+        document.getElementById('taskName').value = '';
+        renderTasks();
+        renderTaskManagementUI();
+        alert(`任务 "${name}" 已添加！`);
+    }
+
+    async function deleteTask(taskId) {
+        if (!isCurrentUserParent()) {
+            alert("只有家长才能删除任务！");
+            return;
+        }
+        const taskToDel = tasks.find(t => t.id === taskId);
+        if (!taskToDel) return;
+        const confirmDel = confirm(`确定删除任务「${taskToDel.name}」吗？`);
+        if (!confirmDel) return;
+        tasks = tasks.filter(t => t.id !== taskId);
+        const newCompletions = {};
+        for (let key in taskCompletions) {
+            if (!key.endsWith(`_${taskId}`)) {
+                newCompletions[key] = taskCompletions[key];
+            }
+        }
+        taskCompletions = newCompletions;
+        persistData();
+        renderTasks();
+        renderTaskManagementUI();
+        alert(`任务 "${taskToDel.name}" 已删除！`);
+    }
+
+    function completeTask(userId, task) {
+        if (isTaskCompletedInPeriod(userId, task)) return false;
+        addTransaction(userId, task.points, `完成任务: ${task.name}`);
+        const key = `${userId}_${task.id}`;
+        taskCompletions[key] = Date.now();
+        persistData();
+        return true;
+    }
+
+    function isTaskCompletedInPeriod(userId, task) {
+        const key = `${userId}_${task.id}`;
+        const lastCompleted = taskCompletions[key];
+        if (!lastCompleted) return false;
+        const lastDate = new Date(lastCompleted);
+        const now = new Date();
+        if (task.frequency === 'daily') {
+            return lastDate.toDateString() === now.toDateString();
+        } else if (task.frequency === 'weekly') {
+            const getWeekNumber = (d) => {
+                const yearStart = new Date(d.getFullYear(), 0, 1);
+                const days = Math.floor((d - yearStart) / 86400000);
+                return Math.ceil((days + yearStart.getDay() + 1) / 7);
+            };
+            return (getWeekNumber(lastDate) === getWeekNumber(now)) && (lastDate.getFullYear() === now.getFullYear());
+        }
+        return false;
+    }
+
+    function addTransaction(userId, amount, reason) {
+        const trans = { id: Date.now() + Math.random(), userId, amount, reason, timestamp: Date.now() };
+        transactions.push(trans);
+        const member = members.find(m => m.id === userId);
+        if (member) member.points += amount;
+        persistData();
+        return trans;
+    }
+
+    function recalcMemberPoints() {
+        members.forEach(member => {
+            let total = 0;
+            transactions.filter(t => t.userId === member.id).forEach(t => total += t.amount);
+            member.points = total;
+        });
+    }
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+
+    function renderTasks() {
+        const container = document.getElementById('tasksContainer');
+        if (!currentUserId) { container.innerHTML = '<div>请先添加家庭成员</div>'; return; }
+        const currentMember = members.find(m => m.id === currentUserId);
+        if (!currentMember) return;
+        const isParent = isCurrentUserParent();
+        if (tasks.length === 0) { container.innerHTML = '<div>暂无任务，家长可添加上方任务～</div>'; return; }
+        let html = '';
+        tasks.forEach(task => {
+            const completed = isTaskCompletedInPeriod(currentUserId, task);
+            const freqLabel = task.frequency === 'daily' ? '每日' : '每周';
+            html += `
+                <div class="task-item" data-task-id="${task.id}">
+                    <div class="task-info">
+                        <strong>${escapeHtml(task.name)}</strong> <span style="font-size:0.8rem; background:#eee; padding:2px 8px; border-radius:20px;">${freqLabel}</span>
+                    </div>
+                    <div class="task-points">+${task.points} 分</div>
+                    <div class="task-actions">
+                        <div class="checkbox-wrapper">
+                            <input type="checkbox" class="task-checkbox" ${completed ? 'checked disabled' : ''} data-task='${JSON.stringify(task).replace(/'/g, "&#39;")}'>
+                        </div>
+                        ${isParent ? `<button class="btn-danger delete-task-btn" data-id="${task.id}" style="margin-left:8px;">🗑️ 删除</button>` : ''}
+                    </div>
+                </div>
+            `;
+        });
+        container.innerHTML = html;
+        
+        document.querySelectorAll('.task-checkbox').forEach(cb => {
+            cb.addEventListener('change', async (e) => {
+                if (cb.disabled) return;
+                const taskData = JSON.parse(cb.getAttribute('data-task'));
+                const success = completeTask(currentUserId, taskData);
+                if (success) {
+                    const wrapper = cb.closest('.task-item');
+                    const starSpan = document.createElement('div');
+                    starSpan.innerText = '⭐ +' + taskData.points;
+                    starSpan.style.position = 'absolute';
+                    starSpan.style.fontSize = '1.3rem';
+                    starSpan.style.pointerEvents = 'none';
+                    starSpan.style.color = 'gold';
+                    starSpan.style.zIndex = 999;
+                    starSpan.classList.add('star-effect');
+                    wrapper.style.position = 'relative';
+                    wrapper.appendChild(starSpan);
+                    setTimeout(() => starSpan.remove(), 500);
+                    cb.checked = true;
+                    cb.disabled = true;
+                    renderRankAndCharts();
+                    renderRewards();
+                    renderMemberBar();
+                } else {
+                    cb.checked = false;
+                    alert('任务已完成过，本周期不可重复获得积分');
+                }
+            });
+        });
+        
+        if (isParent) {
+            document.querySelectorAll('.delete-task-btn').forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                    e.stopPropagation();
+                    const taskId = btn.getAttribute('data-id');
+                    await deleteTask(taskId);
+                });
+            });
+        }
+    }
+
+    function renderTaskManagementUI() {
+        const container = document.getElementById('taskManagementArea');
+        const isParent = isCurrentUserParent();
+        if (isParent) {
+            container.innerHTML = `
+                <div class="form-group">
+                    <input type="text" id="taskName" placeholder="任务名称, 例: 洗碗" autocomplete="off">
+                    <input type="number" id="taskPoints" placeholder="积分值" value="10">
+                    <select id="taskFreq">
+                        <option value="daily">每日任务</option>
+                        <option value="weekly">每周任务</option>
+                    </select>
+                    <button class="btn-primary" id="addTaskBtn">➕ 添加任务</button>
+                </div>
+            `;
+            document.getElementById('addTaskBtn').addEventListener('click', addTask);
+        } else {
+            container.innerHTML = `<div class="permission-tip">🔒 仅家长（爸爸/妈妈）可以添加/删除任务，当前成员无管理权限。</div>`;
+        }
+    }
+
+    function renderRewardManageUI() {
+        const container = document.getElementById('rewardManageArea');
+        const isParent = isCurrentUserParent();
+        if (isParent) {
+            container.innerHTML = `
+                <div class="form-group">
+                    <input type="text" id="rewardName" placeholder="奖励名称, 例: 周末看电影">
+                    <input type="number" id="rewardCost" placeholder="所需积分" value="50">
+                    <button class="btn-primary" id="addRewardBtn">✨ 添加奖励</button>
+                </div>
+            `;
+            document.getElementById('addRewardBtn').addEventListener('click', addReward);
+        } else {
+            container.innerHTML = `<div class="permission-tip">🔒 仅家长可以设置奖励，当前成员只能兑换奖励。</div>`;
+        }
+    }
+
+    function addReward() {
+        if (!isCurrentUserParent()) {
+            alert("只有家长才能添加奖励！");
+            return;
+        }
+        const name = document.getElementById('rewardName').value.trim();
+        const cost = parseInt(document.getElementById('rewardCost').value);
+        if (!name || isNaN(cost) || cost <= 0) { alert('请输入有效奖励名称和积分'); return; }
+        rewards.push({ id: 'r_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6), name: name, cost: cost });
+        persistData();
+        document.getElementById('rewardName').value = '';
+        renderRewards();
+        alert(`奖励 "${name}" 已添加！`);
+    }
+
+    function exchangeReward(userId, reward) {
+        const member = members.find(m => m.id === userId);
+        if (!member || member.points < reward.cost) {
+            alert('积分不足！');
+            return;
+        }
+        addTransaction(userId, -reward.cost, `兑换: ${reward.name}`);
+        const log = {
+            id: Date.now()+Math.random(),
+            userId: userId,
+            rewardName: reward.name,
+            pointsSpent: reward.cost,
+            timestamp: Date.now()
+        };
+        redemptionLogs.push(log);
+        persistData();
+        renderRewards();
+        renderRankAndCharts();
+        renderMemberBar();
+        renderExchangeLogs();
+        alert(`成功兑换「${reward.name}」！扣除 ${reward.cost} 积分。`);
+    }
+
+    function renderRewards() {
+        const container = document.getElementById('rewardsContainer');
+        if (!currentUserId) { container.innerHTML = '<div>请选择家庭成员</div>'; return; }
+        const currentMember = members.find(m => m.id === currentUserId);
+        if (!currentMember) return;
+        if (rewards.length === 0) { container.innerHTML = '<div>暂无奖励，请家长添加～</div>'; return; }
+        let html = '';
+        rewards.forEach(reward => {
+            const enough = currentMember.points >= reward.cost;
+            html += `
+                <div class="reward-item">
+                    <div class="reward-info"><strong>${escapeHtml(reward.name)}</strong></div>
+                    <div class="reward-cost">🎫 ${reward.cost} 分</div>
+                    <button class="reward-btn" data-reward='${JSON.stringify(reward).replace(/'/g, "&#39;")}' ${!enough ? 'disabled' : ''}>${enough ? '兑换' : '积分不足'}</button>
+                </div>
+            `;
+        });
+        container.innerHTML = html;
+        document.querySelectorAll('.reward-btn').forEach(btn => {
+            if (btn.disabled) return;
+            btn.addEventListener('click', () => {
+                const reward = JSON.parse(btn.getAttribute('data-reward'));
+                exchangeReward(currentUserId, reward);
+            });
+        });
+    }
+
+    function renderExchangeLogs() {
+        const container = document.getElementById('logContainer');
+        if (!redemptionLogs.length) { container.innerHTML = '暂无兑换记录'; return; }
+        let logsHtml = '';
+        [...redemptionLogs].reverse().forEach(log => {
+            const member = members.find(m => m.id === log.userId);
+            const name = member ? member.name : '未知';
+            const date = new Date(log.timestamp).toLocaleString('zh-CN');
+            logsHtml += `<div>🎁 ${escapeHtml(name)} 兑换了「${escapeHtml(log.rewardName)}」，消耗 ${log.pointsSpent} 积分，时间 ${date}</div>`;
+        });
+        container.innerHTML = logsHtml;
+    }
+
+    function renderRank() {
+        const sorted = [...members].sort((a,b) => b.points - a.points);
+        let html = '';
+        sorted.forEach((m, idx) => {
+            html += `<div class="rank-item"><div class="rank-num">${idx+1}</div><div class="rank-avatar">${m.avatar}</div><div class="rank-name">${escapeHtml(m.name)} ${m.role === 'parent' ? '👑' : ''}</div><div class="rank-points">${m.points} 分</div></div>`;
+        });
+        document.getElementById('rankContainer').innerHTML = html || '暂无成员';
+    }
+
+    function drawTrendChart() {
+        const canvas = document.getElementById('trendChart');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        if (!currentUserId) return;
+        const now = new Date();
+        const startOfWeek = new Date(now);
+        const dayOfWeek = now.getDay() === 0 ? 7 : now.getDay();
+        startOfWeek.setDate(now.getDate() - dayOfWeek + 1);
+        startOfWeek.setHours(0,0,0,0);
+        const weekDays = [];
+        for (let i=0; i<7; i++) {
+            const d = new Date(startOfWeek);
+            d.setDate(startOfWeek.getDate() + i);
+            weekDays.push(d);
+        }
+        const dailyPoints = Array(7).fill(0);
+        const userTrans = transactions.filter(t => t.userId === currentUserId && t.amount > 0);
+        userTrans.forEach(t => {
+            const transDate = new Date(t.timestamp);
+            for (let i=0; i<7; i++) {
+                if (transDate.toDateString() === weekDays[i].toDateString()) {
+                    dailyPoints[i] += t.amount;
+                    break;
+                }
+            }
+        });
+        const maxVal = Math.max(...dailyPoints, 5);
+        const w = canvas.clientWidth, h = 180;
+        canvas.width = w;
+        canvas.height = h;
+        ctx.clearRect(0,0,w,h);
+        if (w === 0) return;
+        const barWidth = (w-60) / 7 - 6;
+        ctx.fillStyle = '#2b6e4f';
+        for (let i=0; i<7; i++) {
+            const barHeight = (dailyPoints[i] / maxVal) * (h-40);
+            const x = 40 + i * (barWidth+8);
+            const y = h - 20 - barHeight;
+            ctx.fillRect(x, y, barWidth, barHeight);
+            ctx.fillStyle = '#5f8b6f';
+            ctx.font = '10px sans-serif';
+            ctx.fillText(weekDays[i].getDate()+'日', x, h-8);
+            ctx.fillStyle = '#2b6e4f';
+        }
+        ctx.fillStyle = '#1e5a41';
+        ctx.fillText('本周积分趋势', 10, 20);
+    }
+
+    function renderMemberBar() {
+        const container = document.getElementById('memberListContainer');
+        if (!members.length) { container.innerHTML = '<div>暂无成员，请添加</div>'; return; }
+        const isParent = isCurrentUserParent();
+        let html = '';
+        members.forEach(m => {
+            const roleIcon = m.role === 'parent' ? '👑' : '👶';
+            html += `
+                <div class="member-chip ${currentUserId === m.id ? 'active' : ''}" data-id="${m.id}">
+                    <span class="member-avatar">${m.avatar}</span>
+                    <span class="member-name">${escapeHtml(m.name)}</span>
+                    <span style="font-size:0.7rem;">${roleIcon}</span>
+                    <span style="font-size:0.75rem; background:rgba(0,0,0,0.1); border-radius:20px; padding:2px 6px;">${m.points}分</span>
+                    ${isParent ? `
+                        <div class="member-actions">
+                            <button class="member-action-btn edit-member" data-id="${m.id}" title="编辑">✏️</button>
+                            <button class="member-action-btn delete-member" data-id="${m.id}" title="删除">🗑️</button>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+        });
+        container.innerHTML = html;
+        
+        document.querySelectorAll('.member-chip').forEach(chip => {
+            chip.addEventListener('click', (e) => {
+                if (e.target.classList.contains('member-action-btn') || 
+                    e.target.parentElement?.classList.contains('member-actions')) {
+                    return;
+                }
+                const targetId = chip.getAttribute('data-id');
+                if (targetId === currentUserId) return;
+                switchToMember(targetId);
+            });
+        });
+        
+        if (isParent) {
+            document.querySelectorAll('.edit-member').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const memberId = btn.getAttribute('data-id');
+                    editMember(memberId);
+                });
+            });
+            
+            document.querySelectorAll('.delete-member').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const memberId = btn.getAttribute('data-id');
+                    deleteMember(memberId);
+                });
+            });
+        }
+    }
+
+    function renderRankAndCharts() {
+        renderRank();
+        drawTrendChart();
+    }
+
+    function refreshAllUI() {
+        recalcMemberPoints();
+        persistData();
+        renderMemberBar();
+        renderTaskManagementUI();
+        renderTasks();
+        renderRankAndCharts();
+        renderRewardManageUI();
+        renderRewards();
+        renderExchangeLogs();
+        updateDateDisplay();
+    }
+
+    function updateDateDisplay() {
+        const now = new Date();
+        const yyyy = now.getFullYear();
+        const mm = String(now.getMonth()+1).padStart(2,'0');
+        const dd = String(now.getDate()).padStart(2,'0');
+        const weekdays = ['周日','周一','周二','周三','周四','周五','周六'];
+        const wd = weekdays[now.getDay()];
+        document.getElementById('currentDateDisplay').innerText = `${yyyy}.${mm}.${dd} ${wd}`;
+    }
+
+    function initDefaultData() {
+        members = [
+            { id: 'm1', name: '爸爸', avatar: '👨', points: 120, role: 'parent' },
+            { id: 'm2', name: '妈妈', avatar: '👩', points: 150, role: 'parent' },
+            { id: 'm3', name: '小明', avatar: '🧒', points: 80, role: 'child' }
+        ];
+        tasks = [
+            { id: 't1', name: '整理房间', points: 15, frequency: 'daily' },
+            { id: 't2', name: '洗碗筷', points: 10, frequency: 'daily' },
+            { id: 't3', name: '一周阅读打卡', points: 30, frequency: 'weekly' }
+        ];
+        rewards = [
+            { id: 'r1', name: '周末看电影', cost: 100 },
+            { id: 'r2', name: '买一个新玩具', cost: 200 }
+        ];
+        transactions = [];
+        redemptionLogs = [];
+        taskCompletions = {};
+        members.forEach(m => {
+            transactions.push({ id: Date.now()+Math.random(), userId: m.id, amount: m.points, reason: '初始积分', timestamp: Date.now() - 86400000*2 });
+        });
+        persistData();
+    }
+
+    function loadData() {
+        const storedMembers = localStorage.getItem(STORAGE_KEYS.MEMBERS);
+        if (storedMembers) {
+            members = JSON.parse(storedMembers);
+            tasks = JSON.parse(localStorage.getItem(STORAGE_KEYS.TASKS) || '[]');
+            rewards = JSON.parse(localStorage.getItem(STORAGE_KEYS.REWARDS) || '[]');
+            transactions = JSON.parse(localStorage.getItem(STORAGE_KEYS.TRANSACTIONS) || '[]');
+            redemptionLogs = JSON.parse(localStorage.getItem(STORAGE_KEYS.REDEMPTION_LOGS) || '[]');
+            taskCompletions = JSON.parse(localStorage.getItem(STORAGE_KEYS.TASK_COMPLETIONS) || '{}');
+        } else {
+            initDefaultData();
+        }
+        if (!members.length) initDefaultData();
+        if (!currentUserId || !members.find(m => m.id === currentUserId)) {
+            currentUserId = members.length ? members[0].id : null;
+        }
+    }
+
+    function resetAll() {
+        if (confirm('⚠️ 重置所有数据将丢失现有记录，确定吗？')) {
+            localStorage.clear();
+            initDefaultData();
+            loadData();
+            recalcMemberPoints();
+            persistData();
+            if (members.length) currentUserId = members[0].id;
+            refreshAllUI();
+            alert('所有数据已重置！');
+        }
+    }
+
+    function exportData() {
+        const exportObj = { members, tasks, rewards, transactions, redemptionLogs, taskCompletions };
+        const dataStr = JSON.stringify(exportObj, null, 2);
+        const blob = new Blob(['\uFEFF' + dataStr], { type: 'application/json;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        const now = new Date();
+        const fileName = `family_points_${now.getFullYear()}-${now.getMonth()+1}-${now.getDate()}.json`;
+        a.download = fileName;
+        a.click();
+        URL.revokeObjectURL(url);
+        alert('数据已导出！文件使用 UTF-8 编码，支持中文显示。');
+    }
+
+    function importData(file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                let content = e.target.result;
+                if (content.charCodeAt(0) === 0xFEFF) {
+                    content = content.substring(1);
+                }
+                const imported = JSON.parse(content);
+                if (imported.members) members = imported.members;
+                if (imported.tasks) tasks = imported.tasks;
+                if (imported.rewards) rewards = imported.rewards;
+                if (imported.transactions) transactions = imported.transactions;
+                if (imported.redemptionLogs) redemptionLogs = imported.redemptionLogs;
+                if (imported.taskCompletions) taskCompletions = imported.taskCompletions;
+                persistData();
+                recalcMemberPoints();
+                if (!currentUserId || !members.find(m => m.id === currentUserId)) {
+                    currentUserId = members.length ? members[0].id : null;
+                }
+                refreshAllUI();
+                alert('数据导入成功！');
+            } catch (err) {
+                alert('导入失败：文件格式错误或编码问题\n' + err.message);
+            }
+        };
+        reader.readAsText(file, 'UTF-8');
+    }
+
+    function initTabs() {
+        const btns = document.querySelectorAll('.tab-btn');
+        const contents = document.querySelectorAll('.tab-content');
+        btns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const tabId = btn.getAttribute('data-tab');
+                btns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                contents.forEach(c => c.classList.remove('active'));
+                document.getElementById(tabId).classList.add('active');
+                if (tabId === 'tab2') drawTrendChart();
+                if (tabId === 'tab3') renderRewards();
+            });
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        loadData();
+        recalcMemberPoints();
+        persistData();
+        if (!currentUserId && members.length) currentUserId = members[0].id;
+        refreshAllUI();
+        initTabs();
+        document.getElementById('addMemberBtn').addEventListener('click', addMember);
+        document.getElementById('resetAllBtn').addEventListener('click', resetAll);
+        document.getElementById('exportDataBtn').addEventListener('click', exportData);
+        document.getElementById('saveMemberBtn').addEventListener('click', saveMemberEdit);
+        document.getElementById('cancelEditBtn').addEventListener('click', () => {
+            document.getElementById('editMemberModal').style.display = 'none';
+        });
+        
+        const importInput = document.getElementById('importFileInput');
+        importInput.addEventListener('change', (e) => {
+            if (e.target.files && e.target.files[0]) {
+                importData(e.target.files[0]);
+            }
+            importInput.value = '';
+        });
+        
+        setInterval(() => {
+            renderTasks();
+            drawTrendChart();
+        }, 60000);
+    });
+</script>
+</body>
+</html>
